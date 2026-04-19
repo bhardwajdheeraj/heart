@@ -123,14 +123,37 @@ CORS(
 groq_client = Groq(api_key=groq_api_key)
 
 # -----------------------------
-# MongoDB Setup
+# MongoDB Setup (Lazy Loading)
+# Connection deferred until first use to prevent startup crashes
+# if MongoDB is unavailable
 # -----------------------------
-mongo_client = MongoClient(mongo_uri)
-db = mongo_client["heart_ai"]
+mongo_client = None
+db = None
+users_collection = None
+chat_collection = None
+prediction_collection = None
 
-users_collection = db["users"]
-chat_collection = db["chat_sessions"]
-prediction_collection = db["prediction_history"]
+def get_mongo_collections():
+    """Initialize MongoDB connection on first use (lazy loading)"""
+    global mongo_client, db, users_collection, chat_collection, prediction_collection
+    
+    if mongo_client is None:
+        if not mongo_uri:
+            raise ValueError("MONGO_URI environment variable is not set. Please configure it on Render.")
+        try:
+            mongo_client = MongoClient(mongo_uri, serverSelectionTimeoutMS=5000)
+            db = mongo_client["heart_ai"]
+            users_collection = db["users"]
+            chat_collection = db["chat_sessions"]
+            prediction_collection = db["prediction_history"]
+            # Test connection
+            mongo_client.admin.command('ping')
+            print("[SUCCESS] MongoDB connected successfully")
+        except Exception as e:
+            print(f"[ERROR] Failed to connect to MongoDB: {str(e)}")
+            raise
+    
+    return users_collection, chat_collection, prediction_collection
 
 # -----------------------------
 # Load ML Model
@@ -155,6 +178,18 @@ if SHAP_ENABLED and model is not None:
     except Exception as e:
         explainer = None
         print("[WARNING] SHAP explainer initialization failed:", e)
+
+# ✅ Initialize MongoDB on first request
+@app.before_request
+def initialize_db():
+    """Initialize MongoDB connection on first API request"""
+    global users_collection, chat_collection, prediction_collection
+    if users_collection is None:
+        try:
+            get_mongo_collections()
+        except Exception as e:
+            print(f"[ERROR] Failed to initialize MongoDB: {str(e)}")
+            return jsonify({"error": "Database connection failed"}), 500
 
 # -----------------------------
 # Home
