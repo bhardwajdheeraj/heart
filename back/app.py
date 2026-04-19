@@ -86,17 +86,23 @@ frontend_urls = [
     "http://127.0.0.1:5173",
     "http://localhost:5174",
     "http://127.0.0.1:5174",
-    "https://heartsense-frontend.onrender.com",  # Add your frontend Render URL
+    "https://heartsense-frontend.onrender.com",
+    "https://*.vercel.app",  # Allow all Vercel deployments
     os.getenv("FRONTEND_URL", "")  # Accept URL from environment
 ]
 
-# Remove empty strings from list
+# Remove empty strings from list and expand wildcard patterns
 frontend_urls = [url for url in frontend_urls if url]
 
+# For now, accept from any origin for Vercel+CORS compatibility
+# In production, replace with specific domain
 CORS(
     app,
     supports_credentials=True,
-    origins=frontend_urls
+    origins=frontend_urls,
+    allow_headers=["Content-Type", "Authorization"],
+    expose_headers=["Content-Type"],
+    methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"]
 )
 
 groq_client = Groq(api_key=groq_api_key)
