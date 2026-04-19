@@ -4,7 +4,7 @@ services:
     env: python
     pythonVersion: 3.11.8
     buildCommand: pip install -r requirements.txt
-    startCommand: cd back && gunicorn app:app -w 4 -b 0.0.0.0
+    startCommand: gunicorn -w 4 -b 0.0.0.0:$PORT app:app --chdir back --timeout 120
     envVars:
       - key: PORT
         scope: runtime
