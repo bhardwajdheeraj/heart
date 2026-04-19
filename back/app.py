@@ -66,8 +66,9 @@ app.config["JWT_SECRET_KEY"] = jwt_secret
 # Accept JWT from cookies and Authorization header so frontend can fallback if browser blocks the cookie
 app.config["JWT_TOKEN_LOCATION"] = ["cookies", "headers"]
 # Use HTTPS only in production
-is_production = os.getenv("ENVIRONMENT", "development") == "production"
-app.config["JWT_COOKIE_SECURE"] = is_production  # True for HTTPS (production), False for HTTP (development)
+# Render sets RENDER=true automatically
+is_production = os.getenv("ENVIRONMENT", "development") == "production" or os.getenv("RENDER") == "true"
+app.config["JWT_COOKIE_SECURE"] = True if is_production else False  # True for HTTPS (production), False for HTTP (development)
 app.config["JWT_ACCESS_COOKIE_PATH"] = "/"
 app.config["JWT_COOKIE_CSRF_PROTECT"] = False
 # For local development, use Lax; for HTTPS production set to None
@@ -80,17 +81,7 @@ app.config["JWT_COOKIE_SAMESITE"] = "None" if is_production else "Lax"
 jwt = JWTManager(app)
 bcrypt = Bcrypt(app)
 
-# ✅ CORS Configuration
-frontend_urls = [
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-    "http://localhost:5174",
-    "http://127.0.0.1:5174",
-    "https://heartsense-frontend.onrender.com",
-    "https://heart-inky-tau.vercel.app",  # Your Vercel frontend
-    "https://*.vercel.app",  # Allow all Vercel deployments
-    os.getenv("FRONTEND_URL", "")  # Accept URL from environment
-]
+import re
 
 # ✅ CORS Configuration
 allowed_origins = [
@@ -100,6 +91,7 @@ allowed_origins = [
     "http://127.0.0.1:5174",
     "https://heartsense-frontend.onrender.com",
     "https://heart-inky-tau.vercel.app",
+    re.compile(r"https://.*\.vercel\.app"),  # Allow all Vercel deployments
 ]
 
 # Add dynamic frontend URL if set
@@ -183,13 +175,33 @@ if SHAP_ENABLED and model is not None:
 @app.before_request
 def initialize_db():
     """Initialize MongoDB connection on first API request"""
+    if request.method == "OPTIONS":
+        return
+        
     global users_collection, chat_collection, prediction_collection
     if users_collection is None:
         try:
             get_mongo_collections()
         except Exception as e:
             print(f"[ERROR] Failed to initialize MongoDB: {str(e)}")
-            return jsonify({"error": "Database connection failed"}), 500
+            from flask import jsonify
+            response = jsonify({"error": "Database connection failed"})
+            # Add CORS header so frontend can read the 500 error instead of a CORS error
+            frontend_url = request.headers.get("Origin")
+            if frontend_url:
+                is_allowed = False
+                for origin in allowed_origins:
+                    if hasattr(origin, 'match') and origin.match(frontend_url):
+                        is_allowed = True
+                        break
+                    elif origin == frontend_url:
+                        is_allowed = True
+                        break
+                
+                if is_allowed:
+                    response.headers.add("Access-Control-Allow-Origin", frontend_url)
+                    response.headers.add("Access-Control-Allow-Credentials", "true")
+            return response, 500
 
 # -----------------------------
 # Home
