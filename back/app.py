@@ -154,25 +154,36 @@ def home():
 # -----------------------------
 @app.route("/register", methods=["POST"])
 def register():
-    data = request.get_json()
-    email = data.get("email", "").strip().lower()
-    password = data.get("password", "")
+    try:
+        data = request.get_json()
+        email = data.get("email", "").strip().lower()
+        password = data.get("password", "")
 
-    if not email or not password:
-        return jsonify({"error": "Email and password required"}), 400
+        if not email or not password:
+            return jsonify({"error": "Email and password required"}), 400
 
-    if users_collection.find_one({"email": email}):
-        return jsonify({"error": "User already exists"}), 400
+        # Check if user exists
+        existing_user = users_collection.find_one({"email": email})
+        if existing_user:
+            return jsonify({"error": "User already exists"}), 400
 
-    hashed_pw = bcrypt.generate_password_hash(password).decode("utf-8")
+        # Hash password
+        hashed_pw = bcrypt.generate_password_hash(password).decode("utf-8")
 
-    users_collection.insert_one({
-        "email": email,
-        "password": hashed_pw,
-        "created_at": datetime.utcnow()
-    })
+        # Insert user
+        result = users_collection.insert_one({
+            "email": email,
+            "password": hashed_pw,
+            "created_at": datetime.utcnow()
+        })
 
-    return jsonify({"message": "User registered successfully"})
+        return jsonify({"message": "User registered successfully", "user_id": str(result.inserted_id)}), 201
+
+    except Exception as e:
+        print(f"[ERROR] Registration Error: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": f"Registration failed: {str(e)}"}), 500
 
 # -----------------------------
 # LOGIN
