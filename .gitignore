@@ -61,18 +61,17 @@ develop-eggs/
 *.xls
 data/
 datasets/
-*.pkl
-*.pickle
-*.joblib
 
-# EXCEPTION: Allow model files in back/model/ folder
+# Model files - ignore by default but ALLOW back/model/*.pkl
+
+*.joblib
+# EXCEPTION: DO NOT ignore model files in back/model/ folder
+!back/model/
 !back/model/*.pkl
 !back/model/*.joblib
 
-# Model files
+# Model weights and checkpoints (still ignore these)
 *.h5
-*.pkl
-*.joblib
 *.pth
 model_weights/
 checkpoints/
