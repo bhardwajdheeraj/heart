@@ -29,20 +29,25 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    console.error(
-      "[api] response error:",
-      error?.message,
-      error?.response?.status,
-      error?.config?.url
-    );
-
     const status = error.response?.status;
     const url = error.config?.url || "";
 
-    // ✅ DO NOT redirect if the error comes from these endpoints
+    // ✅ DO NOT log 401 errors for auth-related endpoints (normal on page load)
     const authEndpoints = ["/login", "/register", "/me"];
     const isAuthEndpoint = authEndpoints.some(endpoint => url.endsWith(endpoint));
+    const is401OnAuthEndpoint = status === 401 && isAuthEndpoint;
 
+    // Only log if not a 401 on auth endpoint
+    if (!is401OnAuthEndpoint) {
+      console.error(
+        "[api] response error:",
+        error?.message,
+        error?.response?.status,
+        error?.config?.url
+      );
+    }
+
+    // ✅ DO NOT redirect if the error comes from these endpoints
     if (status === 401 && !isAuthEndpoint) {
       console.warn("Unauthorized! Redirecting to login...");
 
