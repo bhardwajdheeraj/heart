@@ -114,11 +114,17 @@ prediction_collection = db["prediction_history"]
 # -----------------------------
 # Load ML Model
 # -----------------------------
+# Get the directory where app.py is located (back folder)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+MODEL_PATH = os.path.join(BASE_DIR, "model", "best_rf_model.pkl")
+
 try:
-    model = joblib.load("model/best_rf_model.pkl")
-    print("[SUCCESS] Model Loaded Successfully")
+    model = joblib.load(MODEL_PATH)
+    print(f"[SUCCESS] Model Loaded Successfully from {MODEL_PATH}")
 except Exception as e:
-    print("[ERROR] Model Load Error:", e)
+    print(f"[ERROR] Model Load Error: {e}")
+    print(f"[ERROR] Attempted path: {MODEL_PATH}")
+    print(f"[ERROR] File exists: {os.path.exists(MODEL_PATH)}")
     model = None
 
 if SHAP_ENABLED and model is not None:
