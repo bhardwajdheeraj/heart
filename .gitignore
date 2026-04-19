@@ -65,6 +65,10 @@ datasets/
 *.pickle
 *.joblib
 
+# EXCEPTION: Allow model files in back/model/ folder
+!back/model/*.pkl
+!back/model/*.joblib
+
 # Model files
 *.h5
 *.pkl
