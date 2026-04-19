@@ -65,12 +65,13 @@ app = Flask(__name__)
 app.config["JWT_SECRET_KEY"] = jwt_secret
 # Accept JWT from cookies and Authorization header so frontend can fallback if browser blocks the cookie
 app.config["JWT_TOKEN_LOCATION"] = ["cookies", "headers"]
-app.config["JWT_COOKIE_SECURE"] = False  # For local development (HTTP); switch to True in production
+# Use HTTPS only in production
+is_production = os.getenv("ENVIRONMENT", "development") == "production"
+app.config["JWT_COOKIE_SECURE"] = is_production  # True for HTTPS (production), False for HTTP (development)
 app.config["JWT_ACCESS_COOKIE_PATH"] = "/"
 app.config["JWT_COOKIE_CSRF_PROTECT"] = False
 # For local development, use Lax; for HTTPS production set to None
-app.config["JWT_COOKIE_SAMESITE"] = "Lax"
-# app.config["JWT_COOKIE_SAMESITE"] = "None"  # use this in HTTPS prod with secure=True
+app.config["JWT_COOKIE_SAMESITE"] = "None" if is_production else "Lax"
 
 
 # Optional: enforce domain if needed (127.0.0.1 or localhost)
@@ -79,16 +80,23 @@ app.config["JWT_COOKIE_SAMESITE"] = "Lax"
 jwt = JWTManager(app)
 bcrypt = Bcrypt(app)
 
-# ✅ CORS FIX
+# ✅ CORS Configuration
+frontend_urls = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "http://localhost:5174",
+    "http://127.0.0.1:5174",
+    "https://heartsense-frontend.onrender.com",  # Add your frontend Render URL
+    os.getenv("FRONTEND_URL", "")  # Accept URL from environment
+]
+
+# Remove empty strings from list
+frontend_urls = [url for url in frontend_urls if url]
+
 CORS(
     app,
     supports_credentials=True,
-    origins=[
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-        "http://localhost:5174",
-        "http://127.0.0.1:5174"
-    ]
+    origins=frontend_urls
 )
 
 groq_client = Groq(api_key=groq_api_key)
@@ -485,4 +493,6 @@ def stats():
 # RUN
 # -----------------------------
 if __name__ == "__main__":
-    app.run(debug=True, port=5000)
+    port = int(os.getenv("PORT", 5000))
+    debug_mode = os.getenv("FLASK_ENV", "development") == "development"
+    app.run(host="0.0.0.0", port=port, debug=debug_mode)
