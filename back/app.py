@@ -87,11 +87,12 @@ frontend_urls = [
     "http://localhost:5174",
     "http://127.0.0.1:5174",
     "https://heartsense-frontend.onrender.com",
+    "https://heart-inky-tau.vercel.app",  # Your Vercel frontend
     "https://*.vercel.app",  # Allow all Vercel deployments
     os.getenv("FRONTEND_URL", "")  # Accept URL from environment
 ]
 
-# Remove empty strings from list and expand wildcard patterns
+# Remove empty strings from list
 frontend_urls = [url for url in frontend_urls if url]
 
 # For now, accept from any origin for Vercel+CORS compatibility
