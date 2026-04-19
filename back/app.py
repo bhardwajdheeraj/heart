@@ -86,7 +86,7 @@ frontend_urls = [
     "http://127.0.0.1:5173",
     "http://localhost:5174",
     "http://127.0.0.1:5174",
-    "https://heartsense-frontend.onrender.com",  # Add your frontend Render URL
+    "https://heart-inky-tau.vercel.app",  # Add your frontend Render URL
     os.getenv("FRONTEND_URL", "")  # Accept URL from environment
 ]
 
