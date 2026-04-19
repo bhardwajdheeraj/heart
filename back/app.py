@@ -152,7 +152,7 @@ def get_mongo_collections():
 # -----------------------------
 # Get the directory where app.py is located (back folder)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-MODEL_PATH = os.path.join(BASE_DIR, "model", "best_rf_model.pkl")
+MODEL_PATH = os.path.join(BASE_DIR, "Model", "best_rf_model.pkl")
 
 try:
     model = joblib.load(MODEL_PATH)
