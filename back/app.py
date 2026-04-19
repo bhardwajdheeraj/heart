@@ -92,18 +92,32 @@ frontend_urls = [
     os.getenv("FRONTEND_URL", "")  # Accept URL from environment
 ]
 
-# Remove empty strings from list
-frontend_urls = [url for url in frontend_urls if url]
+# ✅ CORS Configuration
+allowed_origins = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "http://localhost:5174",
+    "http://127.0.0.1:5174",
+    "https://heartsense-frontend.onrender.com",
+    "https://heart-inky-tau.vercel.app",
+]
 
-# For now, accept from any origin for Vercel+CORS compatibility
-# In production, replace with specific domain
+# Add dynamic frontend URL if set
+frontend_url = os.getenv("FRONTEND_URL")
+if frontend_url:
+    allowed_origins.append(frontend_url)
+
+# Apply CORS
 CORS(
     app,
-    supports_credentials=True,
-    origins=frontend_urls,
-    allow_headers=["Content-Type", "Authorization"],
-    expose_headers=["Content-Type"],
-    methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+    resources={r"/*": {
+        "origins": allowed_origins,
+        "allow_headers": ["Content-Type", "Authorization"],
+        "expose_headers": ["Content-Type"],
+        "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        "supports_credentials": True,
+        "max_age": 3600
+    }}
 )
 
 groq_client = Groq(api_key=groq_api_key)
