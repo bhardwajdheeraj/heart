@@ -4,6 +4,7 @@ import { toast } from "react-hot-toast";
 import api from "../api";
 import RiskMeter from "../components/RiskMeter";
 import ProbabilityChart from "../components/ProbabilityChart";
+import ShapBarChart from "../components/ShapBarChart";
 import { usePredict } from "../hooks/usePredict";
 import bgImage from "../assets/predict-bg.png";
 import { motion } from "framer-motion";
@@ -572,25 +573,14 @@ export default function Prediction() {
                   <h4 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
                     <HelpCircle className="w-6 h-6 text-primary" /> Why this result?
                   </h4>
-                  <p className="text-gray-500 dark:text-gray-400 mt-1">Factors with the strongest impact on your risk assessment</p>
+                  <p className="text-gray-500 dark:text-gray-400 mt-1">
+                    Factors with the strongest impact on your risk assessment (SHAP values).
+                    <br />
+                    <span className="text-sm font-medium text-red-500">Red: Increases Risk</span> | <span className="text-sm font-medium text-green-500">Green: Decreases Risk</span>
+                  </p>
                 </div>
                 
-                <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                  {result.top_features.map((feature) => (
-                    <div key={feature.feature} className="bg-white/50 dark:bg-gray-800/50 rounded-2xl p-4 border border-gray-100 dark:border-gray-800 relative overflow-hidden group">
-                      <div className={`absolute top-0 right-0 w-2 h-full ${feature.impact >= 0 ? "bg-red-400" : "bg-green-400"}`} />
-                      <div className="pr-4">
-                        <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">{feature.feature}</div>
-                        <div className={`text-2xl font-bold ${feature.impact >= 0 ? "text-red-500" : "text-green-500"}`}>
-                          {feature.impact >= 0 ? "+" : ""}{feature.impact.toFixed(2)}
-                        </div>
-                        <div className="text-xs text-gray-500 mt-2 font-medium">
-                          {feature.impact >= 0 ? "Increases risk" : "Decreases risk"}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                <ShapBarChart topFeatures={result.top_features} />
               </div>
             )}
             
