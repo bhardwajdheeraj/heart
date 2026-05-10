@@ -253,15 +253,27 @@ export default function Prediction() {
   };
 
   const handleAgeChange = (e) => {
-    const age = Number(e.target.value);
+    let ageValue = e.target.value;
+    if (ageValue !== "" && Number(ageValue) > 120) {
+      ageValue = "120";
+    }
+    const age = Number(ageValue);
     setFormData({ ...formData, age });
     setAgeSource("manual");
   };
 
   const handleChange = (e) => {
+    let { name, value, type, max } = e.target;
+    
+    if (type === "number" && max !== "" && value !== "") {
+      if (Number(value) > Number(max)) {
+        value = max;
+      }
+    }
+
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value,
+      [name]: value,
     });
   };
 
@@ -368,7 +380,7 @@ export default function Prediction() {
                     <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5 flex items-center gap-2">
                       <User className="w-4 h-4 text-gray-400" /> Age
                     </label>
-                    <input type="number" name="age" value={formData.age} onChange={handleAgeChange} className={`w-full bg-white dark:bg-gray-800 border ${isOutOfRange("age", formData.age, formData.age) ? "border-red-500" : "border-gray-300 dark:border-gray-600"} text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 px-4 py-3 rounded-xl shadow-sm hover:border-red-400 focus:outline-none focus:ring-2 focus:ring-red-500 dark:focus:ring-red-400 transition-all duration-300`} required />
+                    <input type="number" name="age" min="1" max="120" value={formData.age} onChange={handleAgeChange} className={`w-full bg-white dark:bg-gray-800 border ${isOutOfRange("age", formData.age, formData.age) ? "border-red-500" : "border-gray-300 dark:border-gray-600"} text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 px-4 py-3 rounded-xl shadow-sm hover:border-red-400 focus:outline-none focus:ring-2 focus:ring-red-500 dark:focus:ring-red-400 transition-all duration-300`} required />
                     {isOutOfRange("age", formData.age, formData.age) && <p className="text-xs text-red-600 mt-1">{getWarningMessage("age", formData.age, formData.age)}</p>}
                   </div>
                   <div className="flex-1">
@@ -395,7 +407,7 @@ export default function Prediction() {
                   <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5 flex items-center gap-2">
                     <HeartPulse className="w-4 h-4 text-gray-400" /> Resting BP
                   </label>
-                  <input type="number" name="trestbps" value={formData.trestbps} onChange={handleChange} className={`w-full bg-white dark:bg-gray-800 border ${isOutOfRange("trestbps", formData.trestbps, formData.age) ? "border-red-500" : "border-gray-300 dark:border-gray-600"} text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 px-4 py-3 rounded-xl shadow-sm hover:border-red-400 focus:outline-none focus:ring-2 focus:ring-red-500 dark:focus:ring-red-400 transition-all duration-300`} />
+                  <input type="number" name="trestbps" min="80" max="220" value={formData.trestbps} onChange={handleChange} className={`w-full bg-white dark:bg-gray-800 border ${isOutOfRange("trestbps", formData.trestbps, formData.age) ? "border-red-500" : "border-gray-300 dark:border-gray-600"} text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 px-4 py-3 rounded-xl shadow-sm hover:border-red-400 focus:outline-none focus:ring-2 focus:ring-red-500 dark:focus:ring-red-400 transition-all duration-300`} />
                   <span className="text-sm text-gray-500 dark:text-gray-400 mt-1 block">mmHg</span>
                 </div>
                 
@@ -403,7 +415,7 @@ export default function Prediction() {
                   <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5 flex items-center gap-2">
                     <Droplet className="w-4 h-4 text-gray-400" /> Cholesterol
                   </label>
-                  <input type="number" name="chol" value={formData.chol} onChange={handleChange} className={`w-full bg-white dark:bg-gray-800 border ${isOutOfRange("chol", formData.chol, formData.age) ? "border-red-500" : "border-gray-300 dark:border-gray-600"} text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 px-4 py-3 rounded-xl shadow-sm hover:border-red-400 focus:outline-none focus:ring-2 focus:ring-red-500 dark:focus:ring-red-400 transition-all duration-300`} />
+                  <input type="number" name="chol" min="100" max="600" value={formData.chol} onChange={handleChange} className={`w-full bg-white dark:bg-gray-800 border ${isOutOfRange("chol", formData.chol, formData.age) ? "border-red-500" : "border-gray-300 dark:border-gray-600"} text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 px-4 py-3 rounded-xl shadow-sm hover:border-red-400 focus:outline-none focus:ring-2 focus:ring-red-500 dark:focus:ring-red-400 transition-all duration-300`} />
                   <span className="text-sm text-gray-500 dark:text-gray-400 mt-1 block">mg/dL</span>
                 </div>
 
@@ -421,7 +433,7 @@ export default function Prediction() {
                   <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5 flex items-center gap-2">
                     <TrendingUp className="w-4 h-4 text-gray-400" /> Max Heart Rate
                   </label>
-                  <input type="number" name="thalach" value={formData.thalach} onChange={handleChange} className={`w-full bg-white dark:bg-gray-800 border ${isOutOfRange("thalach", formData.thalach, formData.age) ? "border-red-500" : "border-gray-300 dark:border-gray-600"} text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 px-4 py-3 rounded-xl shadow-sm hover:border-red-400 focus:outline-none focus:ring-2 focus:ring-red-500 dark:focus:ring-red-400 transition-all duration-300`} />
+                  <input type="number" name="thalach" min="40" max="220" value={formData.thalach} onChange={handleChange} className={`w-full bg-white dark:bg-gray-800 border ${isOutOfRange("thalach", formData.thalach, formData.age) ? "border-red-500" : "border-gray-300 dark:border-gray-600"} text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 px-4 py-3 rounded-xl shadow-sm hover:border-red-400 focus:outline-none focus:ring-2 focus:ring-red-500 dark:focus:ring-red-400 transition-all duration-300`} />
                   <span className="text-sm text-gray-500 dark:text-gray-400 mt-1 block">bpm</span>
                 </div>
               </div>
@@ -464,7 +476,7 @@ export default function Prediction() {
 
               <div>
                 <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5 block">ST Depression (Oldpeak)</label>
-                <input type="number" step="0.1" name="oldpeak" value={formData.oldpeak} onChange={handleChange} className="w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 px-4 py-3 rounded-xl shadow-sm hover:border-red-400 focus:outline-none focus:ring-2 focus:ring-red-500 dark:focus:ring-red-400 transition-all duration-300" />
+                <input type="number" step="0.1" min="0" max="10" name="oldpeak" value={formData.oldpeak} onChange={handleChange} className="w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 px-4 py-3 rounded-xl shadow-sm hover:border-red-400 focus:outline-none focus:ring-2 focus:ring-red-500 dark:focus:ring-red-400 transition-all duration-300" />
               </div>
 
               <div>
@@ -483,7 +495,6 @@ export default function Prediction() {
                   <option value="1">1</option>
                   <option value="2">2</option>
                   <option value="3">3</option>
-                  <option value="4">4</option>
                 </select>
               </div>
 
